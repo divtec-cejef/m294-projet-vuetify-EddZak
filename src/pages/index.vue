@@ -1,7 +1,6 @@
 <template>
-  <HelloWorld />
+  <CarteOffre />
 </template>
 
 <script setup>
-  //
 </script>
