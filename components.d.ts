@@ -9,11 +9,15 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppFooter: typeof import('./src/components/AppFooter.vue')['default']
+    BarreRecherche: typeof import('./src/components/BarreRecherche.vue')['default']
+    CarteJeu: typeof import('./src/components/CarteJeu.vue')['default']
     CarteOffre: typeof import('./src/components/CarteOffre.vue')['default']
     DetailsOffre: typeof import('./src/components/DetailsOffre.vue')['default']
     GameView: typeof import('./src/components/GameView.vue')['default']
+    GrilleJeux: typeof import('./src/components/GrilleJeux.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     HomeView: typeof import('./src/components/HomeView.vue')['default']
+    MenuTri: typeof import('./src/components/MenuTri.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

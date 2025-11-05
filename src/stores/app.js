@@ -1,122 +1,115 @@
-// src/stores/app.js
 import { defineStore } from 'pinia'
 import api from '@/plugins/axios'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    isLoading: false,
-    error: null,
     jeux: [],
     favoris: [],
+    chargement: false,
     triActuel: 'defaut',
+    afficherFavoris: false,
   }),
 
   getters: {
-    hasGames: state => state.jeux.length > 0,
-    totalGames: state => state.jeux.length,
-    totalFavoris: state => state.favoris.length, // NOUVEAU : Nombre de favoris
+    // Compte le nombre de favoris
+    nombreFavoris: state => state.favoris.length,
 
+    // Vérifie si un jeu est dans les favoris
     estFavori: state => dealID => {
       return state.favoris.some(jeu => jeu.dealID === dealID)
     },
 
+    //  Retourne les jeux triés
     jeuxTries: state => {
-      const jeux = [...state.jeux] // Copie pour ne pas modifier l'original
+      // Si afficherFavoris est true, on prend les favoris, sinon tous les jeux
+      const copie = state.afficherFavoris ? [...state.favoris] : [...state.jeux]
 
-      switch (state.triActuel) {
-        case 'nom-asc': {
-          return jeux.toSorted((a, b) => a.title.localeCompare(b.title))
-        }
-
-        case 'nom-desc': {
-          return jeux.toSorted((a, b) => b.title.localeCompare(a.title))
-        }
-
-        case 'prix-asc': {
-          return jeux.toSorted((a, b) => Number.parseFloat(a.salePrice) - Number.parseFloat(b.salePrice))
-        }
-
-        case 'prix-desc': {
-          return jeux.toSorted((a, b) => Number.parseFloat(b.salePrice) - Number.parseFloat(a.salePrice))
-        }
-
-        case 'economie-asc': {
-          return jeux.toSorted((a, b) => Number.parseFloat(a.savings) - Number.parseFloat(b.savings))
-        }
-
-        case 'economie-desc': {
-          return jeux.toSorted((a, b) => Number.parseFloat(b.savings) - Number.parseFloat(a.savings))
-        }
-
-        default: {
-          return jeux
-        } // Tri par défaut (Deal Rating)
+      // Tri par nom A→Z
+      if (state.triActuel === 'nom-asc') {
+        return copie.toSorted((a, b) => a.title.localeCompare(b.title))
       }
+
+      // Tri par nom Z→A
+      if (state.triActuel === 'nom-desc') {
+        return copie.toSorted((a, b) => b.title.localeCompare(a.title))
+      }
+
+      // Tri par prix croissant
+      if (state.triActuel === 'prix-asc') {
+        return copie.toSorted((a, b) => Number.parseFloat(a.salePrice) - Number.parseFloat(b.salePrice))
+      }
+
+      // Tri par prix décroissant
+      if (state.triActuel === 'prix-desc') {
+        return copie.toSorted((a, b) => Number.parseFloat(b.salePrice) - Number.parseFloat(a.salePrice))
+      }
+
+      // Tri par économie croissante
+      if (state.triActuel === 'economie-asc') {
+        return copie.toSorted((a, b) => Number.parseFloat(a.savings) - Number.parseFloat(b.savings))
+      }
+
+      // Tri par économie décroissante
+      if (state.triActuel === 'economie-desc') {
+        return copie.toSorted((a, b) => Number.parseFloat(b.savings) - Number.parseFloat(a.savings))
+      }
+
+      return copie
     },
   },
 
   actions: {
-    async fetchGames () {
+    // Charge les jeux depuis l'API
+    async chargerJeux () {
+      this.chargement = true
+
       try {
-        this.isLoading = true
         const response = await api.get('/deals', {
           params: {
             storeID: '1',
             pageSize: 60,
           },
         })
+
         this.jeux = response.data.filter(jeu => jeu.storeID === '1')
-        console.log(' Jeux chargés :', this.jeux.length)
       } catch (error) {
-        this.error = 'Erreur lors du chargement des jeux : ' + error.message
-        console.error(' Erreur:', error)
+        console.error('Erreur chargement:', error)
       } finally {
-        this.isLoading = false
+        this.chargement = false
       }
     },
 
-    changerTri (typeTri) {
-      this.triActuel = typeTri
-      console.log('🔄 Tri changé :', typeTri)
-    },
-
-    ajouterFavori (jeu) {
-      if (!this.estFavori(jeu.dealID)) {
-        this.favoris.push(jeu)
-        this.sauvegarderFavoris()
-        console.log('Ajouté aux favoris :', jeu.title)
-      }
-    },
-
-    retirerFavori (dealID) {
-      this.favoris = this.favoris.filter(jeu => jeu.dealID !== dealID)
-      this.sauvegarderFavoris()
-      console.log(' Retiré des favoris')
-    },
-
+    // Ajoute ou retire un jeu des favoris
     toggleFavori (jeu) {
       if (this.estFavori(jeu.dealID)) {
-        this.retirerFavori(jeu.dealID)
+        // Retire des favoris
+        this.favoris = this.favoris.filter(f => f.dealID !== jeu.dealID)
       } else {
-        this.ajouterFavori(jeu)
+        // Ajoute aux favoris
+        this.favoris.push(jeu)
       }
+
+      // Sauvegarde dans le localStorage
+      localStorage.setItem('favoris', JSON.stringify(this.favoris))
     },
 
-    sauvegarderFavoris () {
-      localStorage.setItem('favoris-jeux', JSON.stringify(this.favoris))
+    //  Bascule entre affichage tous les jeux / favoris
+    toggleAffichage () {
+      this.afficherFavoris = !this.afficherFavoris
     },
 
+    // Charge les favoris depuis le localStorage
     chargerFavoris () {
-      const favorisStockes = localStorage.getItem('favoris-jeux')
-      if (favorisStockes) {
-        this.favoris = JSON.parse(favorisStockes)
-        console.log(' Favoris chargés :', this.favoris.length)
+      const data = localStorage.getItem('favoris')
+      if (data) {
+        this.favoris = JSON.parse(data)
       }
     },
 
+    // Initialise l'application
     async init () {
-      this.chargerFavoris() // Charger favoris d'abord
-      await this.fetchGames()
+      this.chargerFavoris()
+      await this.chargerJeux()
     },
   },
 })
