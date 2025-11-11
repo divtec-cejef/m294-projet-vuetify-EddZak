@@ -8,7 +8,7 @@
 
       <v-spacer />
 
-      <!-- AJOUT : Bouton pour basculer entre tous les jeux et favoris -->
+      <!-- Bouton pour basculer entre tous les jeux et favoris -->
       <v-btn
         class="mr-3"
         color="white"

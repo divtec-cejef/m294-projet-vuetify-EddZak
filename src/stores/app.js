@@ -1,3 +1,4 @@
+// Store Pinia pour gérer l'application
 import { defineStore } from 'pinia'
 import api from '@/plugins/axios'
 
@@ -19,7 +20,7 @@ export const useAppStore = defineStore('app', {
       return state.favoris.some(jeu => jeu.dealID === dealID)
     },
 
-    //  Retourne les jeux triés
+    // Trie les jeux selon le tri sélectionné
     jeuxTries: state => {
       // Si afficherFavoris est true, on prend les favoris, sinon tous les jeux
       const copie = state.afficherFavoris ? [...state.favoris] : [...state.jeux]
@@ -73,11 +74,34 @@ export const useAppStore = defineStore('app', {
 
         this.jeux = response.data.filter(jeu => jeu.storeID === '1')
       } catch (error) {
-        console.error('Erreur chargement:', error)
+        console.error('Erreur API, chargement des données locales:', error)
+
+        // charger les données locales si l'API est down
+        try {
+          const data = await import('@/data/jeu.json')
+          this.jeux = data.default
+        } catch (jsonError) {
+          console.error('Erreur chargement JSON:', jsonError)
+        }
       } finally {
         this.chargement = false
       }
     },
+
+    // Charger uniquement depuis le fichier JSON local
+    // async chargerJeuxJSON() {
+    //   this.chargement = true
+    //
+    //   try {
+    //     // Import dynamique du fichier JSON
+    //     const data = await import('@/data/jeux-exemple.json')
+    //     this.jeux = data.default
+    //   } catch (error) {
+    //     console.error('Erreur import JSON:', error)
+    //   } finally {
+    //     this.chargement = false
+    //   }
+    // },
 
     // Ajoute ou retire un jeu des favoris
     toggleFavori (jeu) {
@@ -93,7 +117,7 @@ export const useAppStore = defineStore('app', {
       localStorage.setItem('favoris', JSON.stringify(this.favoris))
     },
 
-    //  Bascule entre affichage tous les jeux / favoris
+    // Bascule entre affichage tous les jeux / favoris
     toggleAffichage () {
       this.afficherFavoris = !this.afficherFavoris
     },
@@ -106,7 +130,6 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    // Initialise l'application
     async init () {
       this.chargerFavoris()
       await this.chargerJeux()

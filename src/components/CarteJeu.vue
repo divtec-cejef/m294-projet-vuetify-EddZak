@@ -1,16 +1,16 @@
 <template>
   <v-card class="d-flex flex-column h-100" elevation="2">
-    <!-- Image du jeu avec hauteur fixe -->
+    <!-- Image du jeu fixe -->
     <v-img
       class="align-end"
       cover
       height="150"
       :src="jeu.thumb"
     >
-      <!--réduction en overlay sur l'image -->
+      <!-- Chip de réduction en overlay sur l'image -->
       <v-chip
         class="ma-2 font-weight-bold"
-        color="green"
+        color="red-lighten-1"
         location="top right"
         size="small"
         variant="flat"
@@ -19,7 +19,7 @@
       </v-chip>
     </v-img>
 
-    <!-- Contenu de la carte -->
+    <!-- Titre du jeu -->
     <v-card-title class="text-subtitle-1">
       {{ jeu.title }}
     </v-card-title>
@@ -38,16 +38,15 @@
 
     <!-- Boutons d'action -->
     <v-card-actions>
-      <!-- Bouton pour aller sur Steam -->
+      <!-- Bouton pour voir les détails du jeu (routing simplifié) -->
       <v-btn
-        color="blue"
-        :href="`https://store.steampowered.com/app/${jeu.steamAppID}`"
+        color="primary"
         size="small"
-        target="_blank"
-        variant="elevated"
+        :to="`/${jeu.dealID}`"
+        variant="text"
       >
-        <v-icon size="small" start>mdi-steam</v-icon>
-        Steam
+        <v-icon size="small" start>mdi-information</v-icon>
+        Détails
       </v-btn>
 
       <v-spacer />

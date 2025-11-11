@@ -2,15 +2,32 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <h1 class="text-h3 mb-4">Meilleures Offres Steam</h1>
+        <!-- Titre cliquable qui ramène à l'accueil -->
+        <h1 class="text-h3 mb-4" style="cursor: pointer" @click="$router.push('/')">
+          Meilleures Offres Steam
+        </h1>
       </v-col>
     </v-row>
 
-    <!-- Barre de recherche et tri -->
+    <!-- Barre de recherche, filtre de prix et tri sur la même ligne -->
     <v-row>
-      <v-col cols="12" md="8">
+      <!-- Barre de recherche -->
+      <v-col cols="12" md="5">
         <BarreRecherche v-model="recherche" />
       </v-col>
+
+      <!-- Filtre de prix -->
+      <v-col cols="12" md="3">
+        <v-select
+          v-model="filtrePrix"
+          density="comfortable"
+          :items="optionsPrix"
+          label="Tranche de prix"
+          variant="outlined"
+        />
+      </v-col>
+
+      <!-- Menu de tri -->
       <v-col cols="12" md="4">
         <MenuTri v-model="store.triActuel" />
       </v-col>
@@ -52,16 +69,58 @@
   // Variable pour la recherche
   const recherche = ref('')
 
-  // Filtre les jeux selon la recherche
-  const jeuxFiltres = computed(() => {
-    const liste = store.jeuxTries
+  // Variable pour le filtre de prix
+  const filtrePrix = ref('Tous')
 
-    if (!recherche.value) {
-      return liste
+  // Options du filtre de prix
+  const optionsPrix = [
+    'Tous',
+    'Gratuit',
+    'Moins de $5',
+    '$5 - $15',
+    '$15 - $30',
+    'Plus de $30',
+  ]
+
+  // Filtre les jeux selon la recherche ET le prix
+  const jeuxFiltres = computed(() => {
+    let liste = store.jeuxTries
+
+    // Filtre par recherche
+    if (recherche.value) {
+      liste = liste.filter(jeu =>
+        jeu.title.toLowerCase().includes(recherche.value.toLowerCase()),
+      )
     }
 
-    return liste.filter(jeu =>
-      jeu.title.toLowerCase().includes(recherche.value.toLowerCase()),
-    )
+    // Filtre par prix
+    if (filtrePrix.value !== 'Tous') {
+      liste = liste.filter(jeu => {
+        const prix = Number.parseFloat(jeu.salePrice)
+
+        switch (filtrePrix.value) {
+          case 'Gratuit': {
+            return prix === 0
+          }
+          case 'Moins de $5': {
+            return prix > 0 && prix < 5
+          }
+          case '$5 - $15': {
+            return prix >= 5 && prix < 15
+          }
+          case '$15 - $30': {
+            return prix >= 15 && prix < 30
+          }
+          case 'Plus de $30': {
+            return prix >= 30
+          }
+          default: {
+            return true
+          }
+        }
+      })
+    }
+
+    return liste
   })
 </script>
