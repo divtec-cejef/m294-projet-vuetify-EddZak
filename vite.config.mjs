@@ -14,6 +14,7 @@ import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/m294-projet-vuetify-EddZak/',
   plugins: [
     VueRouter(),
     Layouts(),
